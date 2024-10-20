@@ -1,0 +1,210 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+
+
+.app-container {
+  text-align: center;
+}
+
+.app-header {
+  background-color: #ffffff;
+  padding: 20px;
+  color: black;
+}
+
+.app-logo {
+  height: 18vmin;
+  pointer-events: none;
+}
+
+.app-title {
+  font-size: 1.5em;
+  margin: 20px 0;
+}
+
+.app-main {
+  padding: 20px;
+}
+
+
+.button {
+  margin-right: 10px;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+.button--active {
+  background-color: #007BFF;
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.button--inactive {
+  background-color: #ececec;
+  color: #333333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+
+
+
+
+.tab-selector {
+  margin-bottom: 20px;
+}
+
+.file-label, .weight-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.file-input, .weight-select {
+  width: 100%;
+  max-width: 300px; /* Adjust as needed */
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.submit-button, .download-button {
+  background-color: #007BFF;
+  color: #ffffff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+}
+
+.submit-button:hover, .download-button:hover {
+  background-color: #0056b3;
+}
+
+
+
+
+
+
+
+
+
+.custom-button {
+  margin-right: 10px;
+  background-color: #ececec;
+  color: #333333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.custom-button--active {
+  background-color: #007BFF;
+  color: #ffffff;
+}
+
+.custom-input {
+  width: 100%;
+  max-width: 300px;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  margin: 0 10px;
+}
+
+.custom-input-email {
+  width: 100%;
+  max-width: 300px;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  margin: 0 10px;
+}
+
+.keyword-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 900px;
+  min-width: 600px;
+}
+
+.keyword-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.remove-button {
+  background: none;
+  border: none;
+  color: red;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.spacer {
+  margin-bottom: 20px;
+}
+
+
+.wrapper-center {
+  display: flex; /* Используйте flexbox для центрирования */
+  justify-content: center; /* Центрирование по горизонтали */
+  align-items: center; /* Центрирование по вертикали */
+}
