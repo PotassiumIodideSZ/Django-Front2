@@ -88,42 +88,39 @@ class UploadFileView(APIView):
             new_excel_file.write(excel_body)
             new_excel_file.close()
 
-            # Define different configurations
-            # configs = {
-            #     'light': {"epochs": 200, "batch_size": 512, "validation_split": 0.2, "verbose": 1},
-            #     'medium': {"epochs": 200, "batch_size": 1024, "validation_split": 0.2, "verbose": 1},
-            #     'heavy': {"epochs": 200, "batch_size": 512, "validation_split": 0.4, "verbose": 1}
-            # }
+            # Загрузка весов моделей
+            model = keras.models.load_model("main_model", compile=False)  # Загрузка основной модели
 
-            # Load and compile the model
-            model = keras.models.load_model("main_model")
+            # Загрузка весов в зависимости от типа веса
+            if weight_type == 'light':
+                model.load_weights("main_model/my_cnn_model.h5")
+            # elif weight_type == 'medium':
+            #     model.load_weights("main_model/weights_config_2.weights.h5")
+            # elif weight_type == 'heavy':
+            #     model.load_weights("main_model/weights_config_3.weights.h5")
 
-            # Use the configuration based on weight_type
-        # if weight_type in configs:
-        #     model.fit(X_train, y_train, **configs[weight_type])
+            # Обработка Excel файла
+            df = pd.read_excel(excel_path)
+            obrashenie = df['Tекст обращения']
+            obrashenie = obrashenie.apply(get_lower).apply(text_update_key).apply(onlygoodsymbols)
 
-        # Process the Excel file
-        df = pd.read_excel(excel_path)
-        obrashenie = df['Tекст обращения']
-        obrashenie = obrashenie.apply(get_lower).apply(text_update_key).apply(onlygoodsymbols)
+            with open('tokenizer.json') as f:
+                data = json.load(f)
+                t = tokenizer_from_json(data)
 
-        with open('tokenizer.json') as f:
-            data = json.load(f)
-            t = tokenizer_from_json(data)
+            categories = Category.objects.all()
+            ly = [category.name for category in categories]
+            obr_t = t.texts_to_matrix(obrashenie, mode='binary')
+            pred = model.predict(obr_t)
+            predicts = [ly[i] for i in np.argmax(pred, axis=-1)]
+            df["Категория"] = predicts
 
-        categories = Category.objects.all()
-        ly = [category.name for category in categories]
-        obr_t = t.texts_to_matrix(obrashenie, mode='binary')
-        pred = model.predict(obr_t)
-        predicts = [ly[i] for i in np.argmax(pred, axis=-1)]
-        df["Категория"] = predicts
+            # Сохранение обработанного файла
+            output_excel_file_path = folder_path + "/output.xlsx"
+            with pd.ExcelWriter(output_excel_file_path) as writer:
+                df.to_excel(writer, index=False)
 
-        # Save the processed file
-        output_excel_file_path = folder_path + "/output.xlsx"
-        with pd.ExcelWriter(output_excel_file_path) as writer:
-            df.to_excel(writer, index=False)
-
-        return Response(status=201)
+            return Response(status=201)
 
 class CategoryUpdateView(APIView):
     def get(self, request: Request):

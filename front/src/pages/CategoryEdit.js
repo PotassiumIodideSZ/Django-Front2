@@ -191,16 +191,16 @@ class CategoryEdit extends React.Component {
         <div className="spacer">
           <button
             onClick={() => this.setActiveTab("categories")}
-            className={`custom-button ${
-              activeTab === "categories" ? "custom-button--active" : ""
+            className={`button ${
+              activeTab === "categories" ? "button--active" : ""
             }`}
           >
             Категории
           </button>
           <button
             onClick={() => this.setActiveTab("keywords")}
-            className={`custom-button ${
-              activeTab === "keywords" ? "custom-button--active" : ""
+            className={`button ${
+              activeTab === "keywords" ? "button--active" : ""
             }`}
           >
             Ключевые слова
@@ -223,7 +223,7 @@ class CategoryEdit extends React.Component {
                 placeholder="Email"
                 className="custom-input-email"
               />
-              <button onClick={this.addCategory} className="custom-button">
+              <button onClick={this.addCategory} className="button">
                 Добавить категорию
               </button>
             </div>
@@ -233,12 +233,7 @@ class CategoryEdit extends React.Component {
               <div className="wrapper-center">
                 <ul
                   className="keyword-list"
-                  style={{
-                    overflowY:
-                      Object.keys(categories).length > 10
-                        ? "scroll"
-                        : "visible",
-                  }}
+                  
                 >
                   {Object.keys(categories).map((category) => (
                     <li key={category}>
@@ -266,7 +261,7 @@ class CategoryEdit extends React.Component {
                 placeholder="Новое ключевое слово"
                 className="custom-input"
               />
-              <button onClick={this.addKeyword} className="custom-button">
+              <button onClick={this.addKeyword} className="button">
                 Добавить ключевое слово
               </button>
             </div>
@@ -305,7 +300,7 @@ class CategoryEdit extends React.Component {
           </div>
         )}
         <div className="spacer">
-          <button onClick={this.saveChanges} className="custom-button">
+          <button onClick={this.saveChanges} className="button">
             Сохранить изменения
           </button>
         </div>

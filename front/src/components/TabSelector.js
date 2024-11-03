@@ -4,13 +4,13 @@ const TabSelector = ({ activeTab }) => {
       window.location.href = "/";
     } else if (tab === "categoryKeywords") {
       window.location.href = "/category-edit";
-    } else if (tab === "emailCampaign") {
-      window.location.href = "/email-campaign"; // Новый маршрут для рассылки по почте
+    } else if (tab === "sendEmail") {
+      window.location.href = "/send-email"; // Новый маршрут для рассылки по почте
     }
   };
 
   return (
-    <div class="tab-selector">
+    <div className="tab-selector">
       <button
         onClick={() => handleTabChange("dataProcessing")}
         className={`button ${
@@ -30,9 +30,9 @@ const TabSelector = ({ activeTab }) => {
         Изменение категорий и ключевых слов
       </button>
       <button
-        onClick={() => handleTabChange("emailCampaign")}
+        onClick={() => handleTabChange("sendEmail")}
         className={`button ${
-          activeTab === "emailCampaign" ? "button--active" : "button--inactive"
+          activeTab === "sendEmail" ? "button--active" : "button--inactive"
         }`}
       >
         Рассылка по почте
