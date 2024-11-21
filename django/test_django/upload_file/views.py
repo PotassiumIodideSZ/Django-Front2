@@ -1,5 +1,6 @@
 import json
 import pickle
+import os
 from os import path, mkdir
 
 import keras
@@ -20,6 +21,7 @@ from rest_framework import status
 from .helpers import get_lower, text_update_key, onlygoodsymbols
 from .serializers import UploadFileSerializer, AuthUserSerializer
 from .token import create_token, read_token, ReadTokenException
+from main_model.model_weights import ModelWeightManager
 
 
 class AuthUserView(APIView):
@@ -53,74 +55,138 @@ class AuthUserView(APIView):
 
 class UploadFileView(APIView):
     def get(self, request: Request):
-
         excel_path = "src/excel/output.xlsx"
-
         response_excel_file = open(excel_path, mode="rb")
         return FileResponse(response_excel_file)
 
     def post(self, request: Request):
-        weight_type = request.data.get('weight_type', None)
+        # Проверка типа весов
+        weight_type = request.data.get('weight_type', 'medium')  # По умолчанию используем medium
         if weight_type not in ['light', 'medium', 'heavy']:
-            return Response(data="Invalid weight type. Expected 'light', 'medium', or 'heavy'.", status=400)
+            return Response(
+                data={"error": "Invalid weight type. Expected 'light', 'medium', or 'heavy'."}, 
+                status=400
+            )
         
+        # Проверка токена
         token = request.headers.get('Authorization')
         try:
             read_token(token)
         except ReadTokenException:
-            return Response(data="Unauthorized", status=401)
+            return Response(
+                data={"error": "Unauthorized"}, 
+                status=401
+            )
 
+        # Валидация данных
         serializer = UploadFileSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                data={"error": "Invalid request data", "details": serializer.errors}, 
+                status=400
+            )
 
-        if serializer.is_valid(raise_exception=True):
+        try:
+            # Сохранение Excel файла
             files = request.FILES
-
             excel_file: InMemoryUploadedFile = files.get('file')
-            excel_body: bytes = excel_file.file.getvalue()
+            if not excel_file:
+                return Response(
+                    data={"error": "No file provided"}, 
+                    status=400
+                )
 
+            # Создание директории если её нет
             folder_path = "src/excel"
-            exel_name = excel_file.name
             if not path.isdir(folder_path):
                 mkdir(folder_path)
-            excel_path = folder_path + "/" + exel_name
+            
+            # Сохранение входного файла
+            excel_path = path.join(folder_path, excel_file.name)
+            with open(excel_path, mode="wb") as new_excel_file:
+                new_excel_file.write(excel_file.file.getvalue())
 
-            new_excel_file = open(excel_path, mode="wb")
-            new_excel_file.write(excel_body)
-            new_excel_file.close()
+            # Загрузка модели с выбранными весами
+            try:
+                weight_type = request.data.get('weight_type', 'medium')
+                model_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'main_model')
+                weight_manager = ModelWeightManager(model_dir=model_dir)
+                model = weight_manager.load_model_with_weights(weight_type)
+                if model is None:
+                    return Response(
+                        data={"error": f"Failed to load model with {weight_type} weights"}, 
+                        status=500
+                    )
+            except Exception as e:
+                return Response(
+                    data={"error": f"Error loading model: {str(e)}"}, 
+                    status=500
+                )
 
-            # Загрузка весов моделей
-            model = keras.models.load_model("main_model", compile=False)  # Загрузка основной модели
-
-            # Загрузка весов в зависимости от типа веса
-            if weight_type == 'light':
-                model.load_weights("main_model/my_cnn_model.h5")
-            # elif weight_type == 'medium':
-            #     model.load_weights("main_model/weights_config_2.weights.h5")
-            # elif weight_type == 'heavy':
-            #     model.load_weights("main_model/weights_config_3.weights.h5")
-
-            # Обработка Excel файла
+            # Обработка данных
             df = pd.read_excel(excel_path)
+            if 'Tекст обращения' not in df.columns:
+                return Response(
+                    data={"error": "Excel file must contain 'Tекст обращения' column"}, 
+                    status=400
+                )
+
+            # Предобработка текста
             obrashenie = df['Tекст обращения']
             obrashenie = obrashenie.apply(get_lower).apply(text_update_key).apply(onlygoodsymbols)
 
-            with open('tokenizer.json') as f:
-                data = json.load(f)
-                t = tokenizer_from_json(data)
+            # Токенизация
+            try:
+                with open('tokenizer.json') as f:
+                    tokenizer = tokenizer_from_json(json.load(f))
+            except Exception as e:
+                return Response(
+                    data={"error": f"Error loading tokenizer: {str(e)}"}, 
+                    status=500
+                )
 
+            # Получение категорий
             categories = Category.objects.all()
-            ly = [category.name for category in categories]
-            obr_t = t.texts_to_matrix(obrashenie, mode='binary')
-            pred = model.predict(obr_t)
-            predicts = [ly[i] for i in np.argmax(pred, axis=-1)]
-            df["Категория"] = predicts
+            category_names = [category.name for category in categories]
+            if not category_names:
+                return Response(
+                    data={"error": "No categories found in database"}, 
+                    status=500
+                )
 
-            # Сохранение обработанного файла
-            output_excel_file_path = folder_path + "/output.xlsx"
-            with pd.ExcelWriter(output_excel_file_path) as writer:
+            # Предсказание категорий
+            obr_t = tokenizer.texts_to_matrix(obrashenie, mode='binary')
+            predictions = model.predict(obr_t)
+            
+            # Получаем индексы и уверенность для каждого предсказания
+            predicted_indices = np.argmax(predictions, axis=-1)
+            confidence_scores = np.max(predictions, axis=-1)
+            
+            # Формируем предсказанные категории и добавляем уверенность
+            predicted_categories = [category_names[i] for i in predicted_indices]
+            df["Категория"] = predicted_categories
+            df["Уверенность"] = [f"{score:.2%}" for score in confidence_scores]
+
+            # Сохранение результата
+            output_path = path.join(folder_path, "output.xlsx")
+            with pd.ExcelWriter(output_path) as writer:
                 df.to_excel(writer, index=False)
 
-            return Response(status=201)
+            return Response(
+                data={
+                    "message": "File processed successfully",
+                    "weight_type": weight_type,
+                    "processed_rows": len(df)
+                }, 
+                status=201
+            )
+
+        except Exception as e:
+            return Response(
+                data={"error": f"Unexpected error: {str(e)}"}, 
+                status=500
+            )
+
 
 class CategoryUpdateView(APIView):
     def get(self, request: Request):
