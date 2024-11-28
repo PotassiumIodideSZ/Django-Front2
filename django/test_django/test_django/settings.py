@@ -133,8 +133,9 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'skobelkin.zahar@gmail.com'
-EMAIL_HOST_PASSWORD = 'pgep oakj ytwf eoxk'
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'vladislava.serova.2025@mail.ru'
+EMAIL_HOST_PASSWORD = 'brp1QuQm1jipXn4iTwj3'
